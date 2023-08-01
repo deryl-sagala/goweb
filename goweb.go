@@ -35,11 +35,13 @@ func init() {
 web.renderHtml(file.html) to render html template
 make sure you have file.html in /templates/
 */
-func RenderHTML(w http.ResponseWriter, tmpl string) {
-	err := templates.ExecuteTemplate(w, tmpl, nil)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+func RenderHTML(tmpl string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := templates.ExecuteTemplate(w, tmpl, nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
