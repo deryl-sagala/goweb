@@ -35,7 +35,7 @@ func init() {
 web.renderHtml(file.html) to render html template
 make sure you have file.html in /templates/
 */
-func renderHTML(w http.ResponseWriter, tmpl string) {
+func RenderHTML(w http.ResponseWriter, tmpl string) {
 	err := templates.ExecuteTemplate(w, tmpl, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -43,7 +43,7 @@ func renderHTML(w http.ResponseWriter, tmpl string) {
 	}
 }
 
-func returnText(w http.ResponseWriter, text string) {
+func ReturnText(w http.ResponseWriter, text string) {
 	// Set the Content-Type header to specify that the response contains plain text.
 	w.Header().Set("Content-Type", "text/plain")
 
@@ -64,7 +64,7 @@ func Serve(port string) {
 }
 
 // A helper function to wrap the handler functions without explicit w and r parameters
-func wrap(h func()) http.HandlerFunc {
+func Wrap(h func()) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		h()
 	}
