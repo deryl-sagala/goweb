@@ -3,6 +3,8 @@ package web
 import (
 	"html/template"
 	"net/http"
+
+	"github.com/deryl-sagala/logger"
 )
 
 var templates *template.Template
@@ -66,8 +68,13 @@ func Serve(port string) {
 }
 
 // A helper function to wrap the handler functions without explicit w and r parameters
+// Deprecated: Use renderer directly
 func Wrap(h func()) http.HandlerFunc {
+	log := logger.NewLogger()
+	// Return an empty http.HandlerFunc
 	return func(w http.ResponseWriter, r *http.Request) {
-		h()
+		// This function does nothing and is kept for backward compatibility.
+		// You can choose to log or notify about the deprecation here if you want.
+		log.Warn("This function is deprecated and does nothing and is kept for backward compatibility.")
 	}
 }
