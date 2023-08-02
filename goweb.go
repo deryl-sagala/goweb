@@ -39,23 +39,27 @@ make sure you have file.html in /templates/
 */
 func RenderHTML(tmpl string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger.NewLogger()
 		err := templates.ExecuteTemplate(w, tmpl, nil)
 		if err != nil {
+			log.Error(err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 }
 
-func ReturnText(w http.ResponseWriter, text string) {
-	// Set the Content-Type header to specify that the response contains plain text.
-	w.Header().Set("Content-Type", "text/plain")
-
-	// Write the text to the ResponseWriter.
-	_, err := w.Write([]byte(text))
-	if err != nil {
-		// If an error occurs while writing, return an internal server error.
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+func Return(tmpl string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger.NewLogger()
+		// Set the Content-Type header to specify that the response contains plain text.
+		w.Header().Set("Content-Type", "text/plain")
+		_, err := w.Write([]byte(tmpl))
+		if err != nil {
+			log.Error(err.Error())
+			// If an error occurs while writing, return an internal server error.
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 }
 
@@ -71,10 +75,10 @@ func Serve(port string) {
 // Deprecated: Use renderer directly
 func Wrap(h func()) http.HandlerFunc {
 	log := logger.NewLogger()
+	log.Warn("This function is deprecated and does nothing and is kept for backward compatibility.")
 	// Return an empty http.HandlerFunc
 	return func(w http.ResponseWriter, r *http.Request) {
 		// This function does nothing and is kept for backward compatibility.
 		// You can choose to log or notify about the deprecation here if you want.
-		log.Warn("This function is deprecated and does nothing and is kept for backward compatibility.")
 	}
 }
