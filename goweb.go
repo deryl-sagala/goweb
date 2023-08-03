@@ -1,11 +1,35 @@
 package web
 
 import (
+	"bufio"
+	"fmt"
 	"html/template"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/deryl-sagala/logger"
 )
+
+func readFile(filename string) (string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	var formattedContent string
+	for scanner.Scan() {
+		formattedContent += fmt.Sprintf("\t\t%s\n", scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	return formattedContent, nil
+}
 
 var templates *template.Template
 
@@ -37,15 +61,31 @@ func init() {
 web.renderHtml(file.html) to render html template
 make sure you have file.html in /templates/
 */
-func RenderHTML(tmpl string) http.HandlerFunc {
+func RenderHTML(tmpl string, vars ...map[string]interface{}) http.HandlerFunc {
+	log := logger.NewLogger()
 	return func(w http.ResponseWriter, r *http.Request) {
-		log := logger.NewLogger()
-		err := templates.ExecuteTemplate(w, tmpl, nil)
+		result, err := readFile(fmt.Sprintf("templates/%s", tmpl))
+		if err != nil {
+			log.Error(fmt.Sprintf("", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if len(vars) > 0 && vars[0] != nil {
+			for key, value := range vars[0] {
+				placeholder := "{{" + key + "}}"
+				result = strings.Replace(result, placeholder, fmt.Sprintf("%v", value), -1)
+			}
+		}
+
+		// Render the modified template to the response
+		_, err = w.Write([]byte(result))
 		if err != nil {
 			log.Error(err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 	}
 }
 
@@ -75,7 +115,7 @@ func Serve(port string) {
 // Deprecated: Use renderer directly
 func Wrap(h func()) http.HandlerFunc {
 	log := logger.NewLogger()
-	log.Warn("This function is deprecated and does nothing and is kept for backward compatibility.")
+	log.Warn("Wrap function is deprecated and does nothing and is kept for backward compatibility.")
 	// Return an empty http.HandlerFunc
 	return func(w http.ResponseWriter, r *http.Request) {
 		// This function does nothing and is kept for backward compatibility.
